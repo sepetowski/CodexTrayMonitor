@@ -1,0 +1,87 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520" role="img" aria-labelledby="title desc">
+  <title id="title">Codex Tray Monitor</title>
+  <desc id="desc">A dark blue banner showing Codex usage at a glance, with stylized light and dark app previews.</desc>
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0B1020"/>
+      <stop offset="0.58" stop-color="#101A34"/>
+      <stop offset="1" stop-color="#172B58"/>
+    </linearGradient>
+    <linearGradient id="blue" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#91ADFF"/>
+      <stop offset="1" stop-color="#6AE4DD"/>
+    </linearGradient>
+    <radialGradient id="glow">
+      <stop offset="0" stop-color="#597CFF" stop-opacity="0.36"/>
+      <stop offset="1" stop-color="#597CFF" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="34" height="34" patternUnits="userSpaceOnUse">
+      <path d="M34 0H0V34" fill="none" stroke="#ADC0FF" stroke-opacity="0.055"/>
+    </pattern>
+  </defs>
+
+  <rect width="1200" height="520" rx="28" fill="url(#background)"/>
+  <rect width="1200" height="520" rx="28" fill="url(#grid)"/>
+  <circle cx="1000" cy="188" r="345" fill="url(#glow)"/>
+  <path d="M0 426C194 360 293 505 485 471S823 367 1200 436" fill="none" stroke="#9AB4FF" stroke-opacity="0.12" stroke-width="2"/>
+  <path d="M0 448C194 382 293 527 485 493S823 389 1200 458" fill="none" stroke="#9AB4FF" stroke-opacity="0.08" stroke-width="2"/>
+
+  <rect x="72" y="69" width="177" height="30" rx="15" fill="#8EADFF" fill-opacity="0.13" stroke="#8EADFF" stroke-opacity="0.42"/>
+  <circle cx="90" cy="84" r="4" fill="#81DDCC"/>
+  <text x="103" y="89" fill="#BFD2FF" font-family="Segoe UI, Arial, sans-serif" font-size="11" font-weight="700" letter-spacing="1.3">WINDOWS TRAY APP</text>
+
+  <text x="72" y="180" fill="#F7F9FF" font-family="Segoe UI, Arial, sans-serif" font-size="58" font-weight="700" letter-spacing="-2.5">Your Codex usage.</text>
+  <text x="72" y="248" fill="url(#blue)" font-family="Segoe UI, Arial, sans-serif" font-size="58" font-weight="700" letter-spacing="-2.5">One glance away.</text>
+  <text x="75" y="302" fill="#BEC9E3" font-family="Segoe UI, Arial, sans-serif" font-size="20">A quiet companion for your daily workflow.</text>
+  <text x="75" y="333" fill="#BEC9E3" font-family="Segoe UI, Arial, sans-serif" font-size="20">Local agent usage, right in the tray.</text>
+
+  <rect x="72" y="385" width="160" height="42" rx="21" fill="#FFFFFF" fill-opacity="0.08" stroke="#B4C5EF" stroke-opacity="0.18"/>
+  <circle cx="94" cy="406" r="6" fill="#7ADCCA"/>
+  <text x="110" y="411" fill="#EDF2FF" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="600">No extra sign-in</text>
+  <rect x="246" y="385" width="157" height="42" rx="21" fill="#FFFFFF" fill-opacity="0.08" stroke="#B4C5EF" stroke-opacity="0.18"/>
+  <circle cx="268" cy="406" r="6" fill="#93ADFF"/>
+  <text x="284" y="411" fill="#EDF2FF" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="600">Light and dark</text>
+  <rect x="417" y="385" width="145" height="42" rx="21" fill="#FFFFFF" fill-opacity="0.08" stroke="#B4C5EF" stroke-opacity="0.18"/>
+  <circle cx="439" cy="406" r="6" fill="#F9D283"/>
+  <text x="455" y="411" fill="#EDF2FF" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="600">Low overhead</text>
+
+  <!-- Light preview behind the main card. These are illustrations; screenshots are below. -->
+  <rect x="868" y="148" width="270" height="285" rx="19" fill="#050915" fill-opacity="0.48"/>
+  <rect x="862" y="140" width="270" height="285" rx="19" fill="#F7F8FA" stroke="#DDE3EE"/>
+  <text x="884" y="172" fill="#20242B" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="700">CodexTrayMonitor</text>
+  <circle cx="1104" cy="166" r="5" fill="none" stroke="#7B8495" stroke-width="1.5"/>
+  <text x="884" y="211" fill="#20242B" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600">5-hour limit</text>
+  <text x="1097" y="211" fill="#20242B" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700">25%</text>
+  <rect x="884" y="225" width="225" height="7" rx="3.5" fill="#DDE3EA"/>
+  <rect x="884" y="225" width="57" height="7" rx="3.5" fill="#89A8FF"/>
+  <text x="884" y="254" fill="#596273" font-family="Segoe UI, Arial, sans-serif" font-size="10">Resets in 4h 51m</text>
+  <text x="884" y="294" fill="#20242B" font-family="Segoe UI, Arial, sans-serif" font-size="12" font-weight="600">Weekly limit</text>
+  <text x="1104" y="294" fill="#20242B" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700">4%</text>
+  <rect x="884" y="308" width="225" height="7" rx="3.5" fill="#DDE3EA"/>
+  <rect x="884" y="308" width="11" height="7" rx="3.5" fill="#89A8FF"/>
+  <path d="M884 360H1109" stroke="#D9DEE8"/>
+  <text x="884" y="389" fill="#596273" font-family="Segoe UI, Arial, sans-serif" font-size="10">Tokens today</text>
+  <text x="1065" y="389" fill="#20242B" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="700">7.42M</text>
+
+  <!-- Dark preview in front. -->
+  <rect x="694" y="98" width="330" height="300" rx="19" fill="#050915" fill-opacity="0.56"/>
+  <rect x="688" y="90" width="330" height="300" rx="19" fill="#17191D" stroke="#3B4454"/>
+  <text x="714" y="125" fill="#E9EDF4" font-family="Segoe UI, Arial, sans-serif" font-size="13" font-weight="700">CodexTrayMonitor</text>
+  <circle cx="972" cy="118" r="5" fill="none" stroke="#BCC4D0" stroke-width="1.5"/>
+  <path d="M994 114L1002 122M1002 114L994 122" stroke="#BCC4D0" stroke-width="1.5"/>
+  <text x="714" y="172" fill="#E9EDF4" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="600">5-hour limit</text>
+  <text x="962" y="172" fill="#E9EDF4" font-family="Segoe UI, Arial, sans-serif" font-size="19" font-weight="700">25%</text>
+  <rect x="714" y="186" width="278" height="8" rx="4" fill="#383E48"/>
+  <rect x="714" y="186" width="70" height="8" rx="4" fill="url(#blue)"/>
+  <text x="714" y="220" fill="#BCC4D0" font-family="Segoe UI, Arial, sans-serif" font-size="11">Resets in 4h 51m</text>
+  <text x="714" y="266" fill="#E9EDF4" font-family="Segoe UI, Arial, sans-serif" font-size="14" font-weight="600">Weekly limit</text>
+  <text x="973" y="266" fill="#E9EDF4" font-family="Segoe UI, Arial, sans-serif" font-size="19" font-weight="700">4%</text>
+  <rect x="714" y="280" width="278" height="8" rx="4" fill="#383E48"/>
+  <rect x="714" y="280" width="13" height="8" rx="4" fill="#91ADFF"/>
+  <text x="714" y="313" fill="#BCC4D0" font-family="Segoe UI, Arial, sans-serif" font-size="11">Resets in 6d 23h</text>
+  <path d="M714 338H992" stroke="#384151"/>
+  <text x="714" y="365" fill="#BCC4D0" font-family="Segoe UI, Arial, sans-serif" font-size="11">Tokens today</text>
+  <text x="946" y="365" fill="#E9EDF4" font-family="Segoe UI, Arial, sans-serif" font-size="16" font-weight="700">7.42M</text>
+
+  <text x="1130" y="486" fill="#C0CEE9" fill-opacity="0.58" text-anchor="end" font-family="Segoe UI, Arial, sans-serif" font-size="11" letter-spacing="1">LOCAL · PRIVATE · ALWAYS HANDY</text>
+</svg>

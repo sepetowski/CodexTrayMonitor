@@ -1,0 +1,9 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/CodexTrayMonitor.Core/CodexTrayMonitor.Core.csproj" />
+    <Project Path="src/CodexTrayMonitor/CodexTrayMonitor.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/CodexTrayMonitor.Tests/CodexTrayMonitor.Tests.csproj" />
+  </Folder>
+</Solution>

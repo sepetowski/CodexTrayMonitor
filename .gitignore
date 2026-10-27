@@ -1,0 +1,17 @@
+**/bin/
+**/obj/
+artifacts/
+.vs/
+*.user
+*.suo
+.idea/
+.codex/
+.agents/
+.aws/
+.env
+.env.*
+*.pfx
+*.p12
+*.key
+*.pem
+auth.json
