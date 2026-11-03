@@ -38,9 +38,14 @@ internal static class NativeMethods
     [DllImport("user32.dll")]
     private static extern bool SetForegroundWindow(IntPtr window);
 
-    public static void PositionFlyout(Window window)
+    internal static NativePoint CursorPosition()
     {
         GetCursorPos(out var point);
+        return point;
+    }
+
+    internal static void PositionFlyout(Window window, NativePoint point)
+    {
         var monitor = MonitorFromPoint(point, MonitorDefaultToNearest);
         var info = new NativeMonitorInfo { Size = Marshal.SizeOf<NativeMonitorInfo>() };
         if (!GetMonitorInfo(monitor, ref info))
@@ -60,6 +65,22 @@ internal static class NativeMethods
         SetWindowPos(handle, Topmost, info.Work.Right - width - margin,
             info.Work.Bottom - height - margin, width, height, ShowWindow);
         SetForegroundWindow(handle);
+    }
+
+    internal static (NativeRect Bounds, double Scale) FlyoutLoadingBounds(NativePoint point)
+    {
+        var monitor = MonitorFromPoint(point, MonitorDefaultToNearest);
+        var info = new NativeMonitorInfo { Size = Marshal.SizeOf<NativeMonitorInfo>() };
+        if (!GetMonitorInfo(monitor, ref info))
+            throw new InvalidOperationException("Cannot locate the flyout display.");
+
+        var scale = GetDpiForMonitor(monitor, 0, out var dpi, out _) == 0 ? dpi / 96d : 1d;
+        var margin = (int)(12 * scale);
+        var width = Math.Max(1, Math.Min((int)Math.Ceiling(300 * scale), info.Work.Right - info.Work.Left - margin * 2));
+        var height = Math.Max(1, Math.Min((int)Math.Ceiling(286 * scale), info.Work.Bottom - info.Work.Top - margin * 2));
+        var left = info.Work.Right - width - margin;
+        var top = info.Work.Bottom - height - margin;
+        return (new NativeRect { Left = left, Top = top, Right = left + width, Bottom = top + height }, scale);
     }
 
     public static int TrayIconSize()
