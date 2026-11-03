@@ -18,11 +18,18 @@ internal sealed class MonitorApplication : Application
     private SessionMonitor? monitor;
     private string? monitoredHome;
     private TrayController? tray;
+    private UiChildProcess? flyoutChild;
+    private UiChildProcess? settingsChild;
+    private FlyoutLoadingWindow? flyoutLoadingWindow;
     private FlyoutWindow? flyout;
     private SettingsWindow? settingsWindow;
     private ThemeManager? theme;
     private MonitorSnapshot snapshot = MonitorSnapshot.Empty;
+    private MonitorPresentation? latestPresentation;
     private string? startupWarning;
+    private DateTimeOffset lastPresentationAt;
+    private DateTimeOffset nextPresentationUpdate;
+    private DateTimeOffset lastFlyoutChildClosedAt;
     private bool exiting;
     private bool refreshPending;
     private int fileNotificationQueued;
@@ -76,7 +83,12 @@ internal sealed class MonitorApplication : Application
         await RefreshAsync();
     }
 
-    private void PresentationTick(object? sender, EventArgs e) => ApplySnapshot();
+    private void PresentationTick(object? sender, EventArgs e)
+    {
+        var now = DateTimeOffset.UtcNow;
+        if (now < lastPresentationAt || now >= nextPresentationUpdate)
+            ApplySnapshot(now);
+    }
 
     private void ToggleFlyout()
     {
@@ -85,9 +97,94 @@ internal sealed class MonitorApplication : Application
             return;
         }
 
+        if (flyout is { IsVisible: true })
+        {
+            flyout.Toggle();
+            return;
+        }
+
+        if (flyoutChild is { IsRunning: true } running)
+        {
+            CloseFlyoutLoading();
+            running.RequestClose();
+            return;
+        }
+
+        if (flyoutChild is not null)
+            FlyoutChildExited(flyoutChild);
+
+        if (DateTimeOffset.UtcNow - lastFlyoutChildClosedAt < TimeSpan.FromMilliseconds(300))
+            return;
+
+        ApplySnapshot();
+        var cursor = NativeMethods.CursorPosition();
+        try
+        {
+            flyoutLoadingWindow = new FlyoutLoadingWindow(cursor);
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or System.ComponentModel.Win32Exception)
+        {
+            Trace.TraceWarning("Show flyout loading window: {0}", ex);
+        }
+        try
+        {
+            var initial = CurrentUiState() with { CursorX = cursor.X, CursorY = cursor.Y };
+            flyoutChild = new UiChildProcess("flyout", initial, Dispatcher,
+                SaveSettings, ShowSettings, UiChildReady, FlyoutChildExited);
+            return;
+        }
+        catch (Exception ex) when (ex is IOException or InvalidOperationException or System.ComponentModel.Win32Exception)
+        {
+            // Keep the panel usable if starting the optional UI process fails.
+            Trace.TraceWarning("Start flyout process: {0}", ex);
+            CloseFlyoutLoading();
+        }
+
         EnsureFlyout();
         ApplySnapshot();
         flyout!.Toggle();
+    }
+
+    private void FlyoutChildExited(UiChildProcess child)
+    {
+        if (!ReferenceEquals(flyoutChild, child))
+            return;
+
+        flyoutChild = null;
+        lastFlyoutChildClosedAt = DateTimeOffset.UtcNow;
+        CloseFlyoutLoading();
+        var failedToOpen = !child.WasReady && !child.CloseRequested && !exiting;
+        child.Dispose();
+        if (failedToOpen)
+        {
+            EnsureFlyout();
+            ApplySnapshot();
+            flyout!.Toggle();
+        }
+    }
+
+    private void SettingsChildExited(UiChildProcess child)
+    {
+        if (!ReferenceEquals(settingsChild, child))
+            return;
+
+        settingsChild = null;
+        var failedToOpen = !child.WasReady && !exiting;
+        child.Dispose();
+        if (failedToOpen)
+            ShowSettingsFallback();
+    }
+
+    private void UiChildReady(UiChildProcess child)
+    {
+        if (ReferenceEquals(child, flyoutChild))
+            CloseFlyoutLoading();
+    }
+
+    private void CloseFlyoutLoading()
+    {
+        flyoutLoadingWindow?.Dispose();
+        flyoutLoadingWindow = null;
     }
 
     private void CreateMonitor()
@@ -113,6 +210,7 @@ internal sealed class MonitorApplication : Application
         monitor = next;
         monitoredHome = home;
         snapshot = MonitorSnapshot.Empty;
+        latestPresentation = null;
         if (monitor is not null)
         {
             monitor.Changed += OnFilesChanged;
@@ -182,9 +280,7 @@ internal sealed class MonitorApplication : Application
                     refreshGate.Release();
                 }
                 if (!exiting)
-                {
                     ApplySnapshot();
-                }
             } while (refreshPending && !exiting);
         }
         catch (OperationCanceledException) when (cancellation.IsCancellationRequested)
@@ -199,21 +295,72 @@ internal sealed class MonitorApplication : Application
                 Warnings = ["Cannot refresh session data."]
             };
             if (!exiting)
+            {
                 settingsWindow?.UpdateMonitorStatus(snapshot.Warnings);
+                settingsChild?.Send(CurrentUiState());
+            }
         }
     }
 
-    private void ApplySnapshot()
+    private void ApplySnapshot(DateTimeOffset? current = null)
     {
         if (tray is null || exiting)
         {
             return;
         }
 
-        var presentation = MonitorPresentation.From(snapshot, DateTimeOffset.UtcNow);
+        var now = current ?? DateTimeOffset.UtcNow;
+        var presentation = MonitorPresentation.From(snapshot, now);
+        latestPresentation = presentation;
         tray.Update(presentation.FiveHour, theme?.IsLight == true);
         flyout?.Update(presentation);
         settingsWindow?.UpdateMonitorStatus(snapshot.Warnings);
+        if (flyoutChild is not null || settingsChild is not null)
+        {
+            var uiState = CurrentUiState();
+            flyoutChild?.Send(uiState);
+            settingsChild?.Send(uiState);
+        }
+        lastPresentationAt = now;
+        nextPresentationUpdate = NextPresentationUpdate(snapshot, now);
+    }
+
+    private UiMessage CurrentUiState() => new("state",
+        latestPresentation ?? MonitorPresentation.From(snapshot, DateTimeOffset.UtcNow),
+        settings, snapshot.Warnings.ToArray());
+
+    private static DateTimeOffset NextPresentationUpdate(MonitorSnapshot snapshot, DateTimeOffset now)
+    {
+        // Today's totals change at local midnight even if no log event arrives.
+        var tomorrow = now.ToLocalTime().Date.AddDays(1);
+        var next = new DateTimeOffset(tomorrow, TimeZoneInfo.Local.GetUtcOffset(tomorrow)).ToUniversalTime();
+        next = EarlierRateChange(snapshot.Rate, now, next);
+        return EarlierRateChange(snapshot.WeeklyRate, now, next);
+    }
+
+    private static DateTimeOffset EarlierRateChange(RateObservation? observation, DateTimeOffset now, DateTimeOffset next)
+    {
+        if (observation is null)
+            return next;
+
+        // A future observation becomes eligible five minutes before its timestamp.
+        if (observation.ObservedAt > now.AddMinutes(5))
+        {
+            var eligibleAt = observation.ObservedAt.AddMinutes(-5);
+            if (eligibleAt < next)
+                next = eligibleAt;
+        }
+
+        if (observation.ResetsAt is not { } reset || reset <= now)
+            return next;
+
+        var remaining = reset - now;
+        // Renewal text uses whole minutes; the next change occurs just after
+        // the remaining time crosses the next whole-minute boundary.
+        var change = remaining >= TimeSpan.FromMinutes(1)
+            ? reset - TimeSpan.FromMinutes(Math.Floor(remaining.TotalMinutes)) + TimeSpan.FromMilliseconds(1)
+            : reset;
+        return change < next ? change : next;
     }
 
     private void EnsureFlyout()
@@ -234,7 +381,44 @@ internal sealed class MonitorApplication : Application
             return;
         }
 
+        CloseFlyoutLoading();
+        flyoutChild?.RequestClose();
         flyout?.Hide();
+        if (settingsWindow is { IsVisible: true })
+        {
+            settingsWindow.Activate();
+            return;
+        }
+
+        if (settingsChild is { IsRunning: true } running)
+        {
+            running.Send(new UiMessage("activate"));
+            return;
+        }
+
+        if (settingsChild is not null)
+        {
+            SettingsChildExited(settingsChild);
+            if (settingsWindow is { IsVisible: true })
+                return;
+        }
+
+        try
+        {
+            settingsChild = new UiChildProcess("settings", CurrentUiState(), Dispatcher,
+                SaveSettings, ShowSettings, UiChildReady, SettingsChildExited);
+            return;
+        }
+        catch (Exception ex) when (ex is IOException or InvalidOperationException or System.ComponentModel.Win32Exception)
+        {
+            Trace.TraceWarning("Start settings process: {0}", ex);
+        }
+
+        ShowSettingsFallback();
+    }
+
+    private void ShowSettingsFallback()
+    {
         if (settingsWindow is { IsVisible: true })
         {
             settingsWindow.Activate();
@@ -293,6 +477,7 @@ internal sealed class MonitorApplication : Application
     private void ApplyTheme()
     {
         tray?.ApplyTheme();
+        flyoutLoadingWindow?.UpdateTheme();
         ApplySnapshot();
     }
 
@@ -350,6 +535,9 @@ internal sealed class MonitorApplication : Application
         polling.Tick -= PollingTick;
         debounce.Tick -= DebounceTick;
         presentationTimer.Tick -= PresentationTick;
+        flyoutChild?.Dispose();
+        settingsChild?.Dispose();
+        CloseFlyoutLoading();
         if (flyout is not null)
         {
             flyout.SettingsRequested -= ShowSettings;

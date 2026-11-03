@@ -28,6 +28,7 @@ A small Windows tray app that keeps locally observed Codex usage visible while y
 
 - **No separate login.** The monitor reads Codex session logs already on your computer. It never asks for your OpenAI password or API key. You need local Codex sessions for usage data to appear.
 - **Low overhead by design.** It reads new log data incrementally and caches progress, so routine refreshes avoid scanning unchanged content again. Resource use still depends on the size of your session history.
+- **Lower idle memory.** The flyout and Settings run in a second app process while their window is open. That process exits when the window closes, leaving the tray monitor running.
 - **A theme that fits.** Choose light, dark, or automatic system appearance.
 - **The essentials at a glance.** See locally observed 5-hour and weekly limits, reset times, and today's token count from the notification area.
 - **Local and private.** No backend, telemetry, network requests, or automatic updater. The app does not read `auth.json` or change your Codex logs.
@@ -40,6 +41,8 @@ Codex Tray Monitor stays in the Windows notification area and updates its displa
 **Local-only scope:** It does not sync with your OpenAI account. Tokens used on another device, or in a browser session that does not write to this computer's Codex session folder, are not included in today's token count. Limit percentages and reset times are the latest observations found in local logs, not a live account-wide reading from a server.
 
 ## Install
+
+See [CHANGELOG.md](CHANGELOG.md) for release notes.
 
 1. Open **Releases** on this repository and download `CodexTrayMonitor-Setup.exe` from the latest release.
 2. Run the installer. It installs for your Windows account, adds a Start menu shortcut, and does not require administrator rights.

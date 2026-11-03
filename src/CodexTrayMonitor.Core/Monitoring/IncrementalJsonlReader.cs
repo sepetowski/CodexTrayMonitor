@@ -19,8 +19,9 @@ public sealed class IncrementalJsonlReader
 
     public FileCursor Read(string path, FileCursor? previous, CancellationToken cancellationToken = default)
     {
+        // Most polls only hash small regions of unchanged files. Bulk reads use the buffer below.
         using var stream = new FileStream(path, FileMode.Open, FileAccess.Read,
-            FileShare.ReadWrite | FileShare.Delete, 64 * 1024, FileOptions.SequentialScan);
+            FileShare.ReadWrite | FileShare.Delete, 4096, FileOptions.SequentialScan);
         var creation = File.GetCreationTimeUtc(path).Ticks;
         var cursor = previous;
         if (cursor is null

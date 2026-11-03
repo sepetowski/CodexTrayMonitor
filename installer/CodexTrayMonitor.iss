@@ -1,7 +1,7 @@
 [Setup]
 AppId={{1DDA879D-C5F4-4B03-97DE-C72122C17719}
 AppName=Codex Tray Monitor
-AppVersion=1.0.0
+AppVersion=1.0.1
 AppPublisher=Codex Tray Monitor contributors
 DefaultDirName={localappdata}\Programs\CodexTrayMonitor
 DisableProgramGroupPage=yes

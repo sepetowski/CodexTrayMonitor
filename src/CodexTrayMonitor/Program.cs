@@ -14,6 +14,12 @@ internal static class Program
         CultureInfo.DefaultThreadCurrentUICulture = CultureInfo.GetCultureInfo("en-US");
         try
         {
+            if (args is ["--ui-child", "flyout" or "settings"])
+            {
+                new UiHostApplication(args[1]).Run();
+                return 0;
+            }
+
             var identitySource = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
             var dataIndex = Array.IndexOf(args, "--data-dir");
             if (dataIndex >= 0)

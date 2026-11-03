@@ -35,6 +35,11 @@ public partial class FlyoutWindow : Window
 
     public void Toggle()
     {
+        ToggleAt(NativeMethods.CursorPosition());
+    }
+
+    internal void ToggleAt(NativePoint point)
+    {
         // Clicking the tray first deactivates the flyout, then dispatches MouseClick.
         if (IsVisible || DateTimeOffset.UtcNow - hiddenAt < TimeSpan.FromMilliseconds(300))
         {
@@ -42,7 +47,7 @@ public partial class FlyoutWindow : Window
             return;
         }
         Show();
-        NativeMethods.PositionFlyout(this);
+        NativeMethods.PositionFlyout(this, point);
         Activate();
         Focus();
     }
